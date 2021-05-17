@@ -1,5 +1,11 @@
-/**
- * Created by Il Yeup, Ahn in KETI on 2017-02-25.
+/*
+  Created by Il Yeup, Ahn in KETI on 2017-02-25.
+  
+  Modified by Sungwook Jung in Keti on 2021-05-17
+  - Ardupilot SITL <---> nCube-MUV : UDP
+  - Ardupolot SITL <---> Gazebo    : TCP
+  - nCube-MUV      <---> Web GCS   : LTE
+  for hundreds of UAV swarm simulation and testing how many UAV can be added in our Mobius. 
  */
 
 /**
@@ -14,6 +20,11 @@
 
     // for TAS
 var net = require('net');
+var HOST = '127.0.0.1';
+var PORT = 14550;
+var dgram = require('dgram');
+var server = dgram.createSocket('udp4');
+
 var ip = require('ip');
 var moment = require('moment');
 var fs = require('fs');
@@ -25,9 +36,8 @@ var _server = null;
 var socket_mav = null;
 var mavPort = null;
 
-var mavPortNum = '/dev/ttyAMA0';
+var mavPortNum = '/dev/ttyS15';
 var mavBaudrate = '57600';
-
 exports.ready = function tas_ready() {
     if(my_drone_type === 'dji') {
         if (_server == null) {
@@ -57,8 +67,19 @@ exports.ready = function tas_ready() {
             });
         }
     }
-    else if(my_drone_type === 'pixhawk') {
-        mavPortNum = '/dev/ttyAMA0';
+    if(my_drone_type === 'pixhawk'){
+        server.on('listening', function (){
+            let address = server.address();
+            console.log('UDP listening' + address.address + ":" + address.port);
+        });
+        server.on('message', mavPortData
+            //console.log(remote.address + ':' + remote.port +' - ' + message);
+        );
+        server.bind(PORT, HOST);
+    }
+
+    else if(my_drone_type === 'pixhawk1') {
+        mavPortNum = '/dev/ttyS15';
         mavBaudrate = '57600';
         mavPortOpening();
     }
