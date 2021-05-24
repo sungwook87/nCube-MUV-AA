@@ -21,11 +21,15 @@
     // for TAS
     var net = require('net');
     var HOST = '127.0.0.1';
-    var PORT1 = 14550;
+    var PORT1 = 14551;
+    var PORT2 = 14550;
     
     var dgram = require('dgram');
     var server1 = dgram.createSocket('udp4');
-    
+    var server2 = dgram.createSocket('udp4');
+
+    server1.bind(PORT1, HOST);
+
     var ip = require('ip');
     var moment = require('moment');
     var fs = require('fs');
@@ -35,10 +39,11 @@
     var _server = null;
     
     var socket_mav = null;
-    var mavPort = null;
+    // var mavPort = null;
     
-    var mavPortNum = '/dev/ttyS15';
-    var mavBaudrate = '57600';
+    // var mavPortNum = '/dev/ttyS15';
+    // var mavBaudrate = '57600';
+
     exports.ready = function tas_ready() {
         if(my_drone_type === 'pixhawk'){
             server1.on('listening', function (){
@@ -47,13 +52,13 @@
             });
             server1.on('message', mavPortData);
                 //console.log(remote.address + ':' + remote.port +' - ' + message);
-                console.log('message');
+                console.log('publish');
 
-            server1.bind(PORT1, HOST);
+            //server1.bind(PORT1, HOST);
         }
     
         else {
-    
+
         }
     };
      
@@ -128,7 +133,11 @@
                         params.pitchspeed,
                         params.yawspeed);
                     break;
-                case mavlink.MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
+                case mavlink.MAVLINK_MSG_ID_GLOBAL_POSITION_INT:            server1.send(message, 0, message.length, PORT1, HOST, function(err, bytes) {
+                if (err) throw err;
+                console.log('UDP message sent to ' + HOST +':'+ PORT1);
+                console.log(message);
+                });
                     mavMsg = new mavlink.messages.global_position_int(params.time_boot_ms,
                         params.lat,
                         params.lon,
@@ -204,43 +213,22 @@
     };
     
     exports.gcs_noti_handler = function (message) {
-        if(my_drone_type === 'dji') {
-            var com_msg = message.toString();
-            var com_message = com_msg.split(":");
-            var msg_command = com_message[0];
-    
-            if (msg_command == 't' || msg_command == 'h' || msg_command == 'l') {
-                socket_mav.write(message);
-            }
-            else if (msg_command == 'g') {
-                if(com_message.length < 5) {
-                    for(var i = 0; i < (5-com_message.length); i++) {
-                        com_msg += ':0';
-                    }
-                    message = Buffer.from(com_msg);
-                }
-                socket_mav.write(message);
-    
-                var msg_lat = com_message[1].substring(0,7);
-                var msg_lon = com_message[2].substring(0,7);
-                var msg_alt = com_message[3].substring(0,3);
-            }
-            else if (msg_command == 'm'|| msg_command == 'a') {
-                socket_mav.write(message);
-            }
-        }
-        else if(my_drone_type === 'pixhawk') {
-            if (mavPort != null) {
-                if (mavPort.isOpen) {
-                    mavPort.write(message);
-                }
-            }
+
+        if((my_drone_type === 'pixhawk')) {
+
+            console.log(message);
+            server2.send(message, PORT2, HOST, function(err, bytes) {
+                if (err) throw err;
+                console.log('UDP message sent to ' + HOST +':'+ PORT2);
+                console.log(bytes);
+                });          
         }
         else {
     
         }
     };
-    
+   
+    /*
     var SerialPort = require('serialport');
     
     function mavPortOpening() {
@@ -263,7 +251,8 @@
             }
         }
     }
-    
+  */
+ /*  
     function mavPortOpen() {
         console.log('mavPort open. ' + mavPortNum + ' Data rate: ' + mavBaudrate);
     }
@@ -286,6 +275,7 @@
     
         setTimeout(mavPortOpening, 2000);
     }
+    */
     
     global.mav_ver = 1;
     
@@ -316,7 +306,7 @@
             mavStrFromDrone = mavStrFromDrone.substr(mavStrFromDroneLength);
             mavStrFromDroneLength = 0;
         }
-    
+   
         mavStrFromDrone += hex(data);
         while(mavStrFromDrone.length > 12) {
             var stx = mavStrFromDrone.substr(0, 2);
