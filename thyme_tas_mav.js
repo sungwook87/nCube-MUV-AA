@@ -21,12 +21,11 @@
     // for TAS
     var net = require('net');
     var HOST = '127.0.0.1';
-    var PORT1 = 14551;
-    var PORT2 = 14550;
+    var PORT1 = 14550; // output: SITL --> GCS
+    var PORT2 = 14551; // input : GCS --> SITL
     
     var dgram = require('dgram');
     var server1 = dgram.createSocket('udp4');
-    var server2 = dgram.createSocket('udp4');
 
     server1.bind(PORT1, HOST);
 
@@ -52,9 +51,7 @@
             });
             server1.on('message', mavPortData);
                 //console.log(remote.address + ':' + remote.port +' - ' + message);
-                console.log('publish');
 
-            //server1.bind(PORT1, HOST);
         }
     
         else {
@@ -133,11 +130,7 @@
                         params.pitchspeed,
                         params.yawspeed);
                     break;
-                case mavlink.MAVLINK_MSG_ID_GLOBAL_POSITION_INT:            server1.send(message, 0, message.length, PORT1, HOST, function(err, bytes) {
-                if (err) throw err;
-                console.log('UDP message sent to ' + HOST +':'+ PORT1);
-                console.log(message);
-                });
+                case mavlink.MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
                     mavMsg = new mavlink.messages.global_position_int(params.time_boot_ms,
                         params.lat,
                         params.lon,
@@ -189,6 +182,7 @@
                 //mqtt_client.publish(my_cnt_name, msg.toString('hex'));
                 //_this.send_aggr_to_Mobius(my_cnt_name, msg.toString('hex'), 1500);
                 mavPortData(msg);
+
             }
         }
         catch( ex ) {
@@ -215,12 +209,13 @@
     exports.gcs_noti_handler = function (message) {
 
         if((my_drone_type === 'pixhawk')) {
+            server1.send(message, 0, message.length, PORT2, HOST, function(err) {
 
-            console.log(message);
-            server2.send(message, PORT2, HOST, function(err, bytes) {
+            //    console.log(my_system_id);
+
+           // console.log(message);
                 if (err) throw err;
-                console.log('UDP message sent to ' + HOST +':'+ PORT2);
-                console.log(bytes);
+             //   console.log('UDP message sent to ' + HOST +':'+ PORT2);
                 });          
         }
         else {
