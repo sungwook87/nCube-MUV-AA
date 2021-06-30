@@ -22,7 +22,7 @@
     var net = require('net');
     var HOST = '127.0.0.1';
     var PORT1 = 14550; // output: SITL --> GCS
-    var PORT2 = 14551; // input : GCS --> SITL
+    var PORT2 = 14552; // input : GCS --> SITL
     
     var dgram = require('dgram');
     var server1 = dgram.createSocket('udp4');
