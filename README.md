@@ -23,4 +23,9 @@ $ npm install
 $ sudo apt-get update
 $ sudo apt-get install -y mosquitto
 ```
+* How to run?
+```
+$ cd ~/nCube-MUV-AA
+$ node thyme_tas_mav.js
+
 # nCube-MUV-AA
