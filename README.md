@@ -13,7 +13,7 @@ $ sudo npm install -g pm2
 
 $ git clone https://github.com/IoTKETI/nCube-MUV-AA
 
-$ cd /home/pi/nCube-MUV
+$ cd ~/nCube-MUV-AA
 
 $ npm install
 ```
