@@ -11,7 +11,7 @@ $ node -v
 
 $ sudo npm install -g pm2
 
-$ git clone https://github.com/IoTKETI/nCube-MUV-AA
+$ https://github.com/sungwook87/nCube-MUV-AA
 
 $ cd ~/nCube-MUV-AA
 
